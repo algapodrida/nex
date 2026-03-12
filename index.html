@@ -25,14 +25,17 @@ html,body{background:var(--bg);color:#e0f7fa;font-family:'Space Mono',monospace;
 .hc{font-size:10px;color:#4a6572;}
 
 /* Players panel */
-#pp{position:fixed;top:60px;right:12px;width:170px;background:rgba(2,4,10,0.9);
+#pp{position:fixed;top:60px;right:12px;width:200px;background:rgba(2,4,10,0.9);
   border:1px solid var(--bd);padding:10px;z-index:150;display:none;}
 #pp.on{display:block;}
 .ppt{font-size:8px;letter-spacing:2px;color:#4a6572;text-transform:uppercase;
   margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bd);}
 .ppi{display:flex;align-items:center;gap:7px;font-size:10px;padding:3px 0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ppc{width:9px;height:9px;flex-shrink:0;}
+.ppc{width:9px;height:9px;flex-shrink:0;border-radius:2px;}
+#myid-box{margin-top:10px;padding-top:8px;border-top:1px solid var(--bd);font-size:8px;color:#4a6572;}
+#myid-val{color:var(--c3);font-size:9px;letter-spacing:1px;cursor:pointer;word-break:break-all;}
+#myid-val:hover{color:var(--c1);}
 
 /* Entry */
 #entry{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;
@@ -43,7 +46,7 @@ html,body{background:var(--bg);color:#e0f7fa;font-family:'Space Mono',monospace;
   background-size:50px 50px;animation:gp 25s linear infinite;}
 @keyframes gp{from{background-position:0 0}to{background-position:50px 50px}}
 .ec{position:relative;background:rgba(0,245,255,0.04);border:1px solid var(--bd);
-  padding:48px 58px;width:490px;backdrop-filter:blur(20px);
+  padding:48px 58px;width:520px;backdrop-filter:blur(20px);
   box-shadow:0 0 80px rgba(0,245,255,0.07),inset 0 1px 0 rgba(255,255,255,0.04);}
 .ec::before{content:'';position:absolute;top:-1px;left:20px;right:20px;height:2px;
   background:linear-gradient(90deg,transparent,var(--c1),transparent);}
@@ -69,6 +72,12 @@ html,body{background:var(--bg);color:#e0f7fa;font-family:'Space Mono',monospace;
 .dot{width:7px;height:7px;border-radius:50%;background:var(--c3);box-shadow:0 0 7px var(--c3);
   animation:pu 2s infinite;display:inline-block;vertical-align:middle;margin-right:7px;}
 @keyframes pu{0%,100%{opacity:1}50%{opacity:0.35}}
+.connect-row{display:flex;gap:8px;margin-bottom:12px;}
+.connect-row .ei{flex:1;margin-bottom:0;}
+.eb-sm{background:transparent;border:1px solid var(--c3);color:var(--c3);
+  font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;
+  padding:12px 16px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.eb-sm:hover{background:rgba(173,255,47,0.1);}
 
 /* Game HUDs */
 .ghud{position:fixed;top:50px;left:0;right:0;padding:10px 20px;
@@ -116,22 +125,37 @@ html,body{background:var(--bg);color:#e0f7fa;font-family:'Space Mono',monospace;
   <div class="eg"></div>
   <div class="ec">
     <div class="et">NEXUS</div>
-    <div class="es">Game World · Multijugador</div>
+    <div class="es">Game World · Multijugador P2P</div>
     <div style="margin-bottom:18px;font-size:9px;color:#4a6572;">
-      <span class="dot"></span>Conexión P2P en tiempo real
+      <span class="dot"></span>Conexión P2P directa · sin servidor
     </div>
-    <div id="estat"></div>
+    <div id="estat">Iniciando PeerJS…</div>
     <label class="el">Nickname</label>
     <input class="ei" id="ni" placeholder="PLAYER_01" maxlength="16" autocomplete="off"/>
-    <label class="el">Sala (misma sala = mismo mundo)</label>
-    <input class="ei" id="ri" placeholder="SALA_01" maxlength="20" autocomplete="off"/>
+    <label class="el">Conectar con amigo (ID del peer)</label>
+    <div class="connect-row">
+      <input class="ei" id="peer-id-input" placeholder="ID de tu amigo (opcional)" autocomplete="off"/>
+      <button class="eb-sm" onclick="connectToPeer()">CONECTAR</button>
+    </div>
     <button class="eb" onclick="doEnter()"><span>▶ ENTRAR AL NEXUS</span></button>
   </div>
 </div>
 
 <!-- HUD -->
-<div id="hud"><div class="hl">NEXUS</div><div class="hn" id="hn"></div><div class="hc" id="hc">1 jugador</div></div>
-<div id="pp"><div class="ppt">En la sala</div><div id="ppi"></div></div>
+<div id="hud">
+  <div class="hl">NEXUS</div>
+  <div class="hn" id="hn"></div>
+  <div class="hc" id="hc">1 jugador</div>
+</div>
+<div id="pp">
+  <div class="ppt">En la sala</div>
+  <div id="ppi"></div>
+  <div id="myid-box" style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(0,245,255,0.15);display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+    <span style="color:#4a6572;font-size:8px;letter-spacing:1px;">ID:</span>
+    <span id="myid-val" style="color:var(--c3);font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;letter-spacing:4px;">…</span>
+    <button id="myid-copy" style="background:transparent;border:1px solid rgba(173,255,47,0.35);color:var(--c3);font-family:'Orbitron',sans-serif;font-size:7px;font-weight:700;letter-spacing:1px;padding:3px 8px;cursor:pointer;margin-left:auto;">COPIAR</button>
+  </div>
+</div>
 
 <!-- LOBBY -->
 <div class="screen" id="scr-lobby">
@@ -139,7 +163,7 @@ html,body{background:var(--bg);color:#e0f7fa;font-family:'Space Mono',monospace;
   <div id="ltip">Click → capturar ratón &nbsp;·&nbsp; WASD mover &nbsp;·&nbsp; E entrar portal</div>
 </div>
 
-<!-- GEO -->
+<!-- GEO DASH -->
 <div class="screen" id="scr-geo">
   <canvas id="cG"></canvas>
   <div class="ghud">
@@ -189,23 +213,16 @@ html,body{background:var(--bg);color:#e0f7fa;font-family:'Space Mono',monospace;
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// ╔══════════════════════════════════════════════════════════╗
-//  NEXUS — Rewrite v3
-//  Multiplayer via PieSocket (free public WS relay)
-//  All renderers use explicit pixel sizes, no CSS override
-// ╚══════════════════════════════════════════════════════════╝
 'use strict';
-
 const COLORS=['#00f5ff','#ff006e','#adff2f','#ff9500','#bf5fff',
               '#ff4757','#2ed573','#ffa502','#70a1ff','#ff6b81'];
 
-// ── globals ──
-let ME={nick:'',room:'',id:'',color:''};
-let PEERS={};          // id → {nick,color,x,z,screen,lastSeen}
+let ME={nick:'',id:'',color:''};
+let PEERS={};   // id → {nick,color,x,z,screen,conn,lastSeen}
 let curScreen='entry';
-const K={};            // keys pressed
+const K={};
+let lobbyPx=0,lobbyPz=0;
 
-// ── keys (skip inputs) ──
 window.addEventListener('keydown',e=>{
   if(document.activeElement&&document.activeElement.tagName==='INPUT') return;
   K[e.code]=K[e.key.toLowerCase()]=true;
@@ -214,79 +231,97 @@ window.addEventListener('keydown',e=>{
 window.addEventListener('keyup',e=>{ K[e.code]=K[e.key.toLowerCase()]=false; });
 
 // ════════════════════════════════════════════════════════════
-//  MULTIPLAYER — PieSocket free public relay
-//  Channel = sha-ish of room name → unique per sala
+//  MULTIPLAYER — WebSocket (sala por ID de 4 dígitos)
+//  Usamos el broker público de PieSocket (sin cuenta)
 // ════════════════════════════════════════════════════════════
 let ws=null;
-let wsPingInterval=null;
-
-function roomChan(room){
-  // simple hash → channel id (PieSocket accepts alphanumeric)
-  let h=5381;
-  for(let i=0;i<room.length;i++) h=((h<<5)+h)+room.charCodeAt(i);
-  return 'nexus'+Math.abs(h).toString(36).slice(0,10);
-}
+let wsReady=false;
 
 function netInit(){
-  const chan=roomChan(ME.room);
-  // Free PieSocket demo — no account needed, public channels
-  const url=`wss://s14470.blr1.piesocket.com/v3/${chan}?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9f&notify_self=0`;
-  setStatus('Conectando…');
-  ws=new WebSocket(url);
-  ws.onopen=()=>{
-    setStatus('✓ Conectado — sala: '+ME.room);
-    netSend({t:'hello',nick:ME.nick,color:ME.color});
-    // ping loop so others know we're alive
-    wsPingInterval=setInterval(()=>netSend({t:'ping',x:lobbyPx,z:lobbyPz,screen:curScreen}),2000);
+  // ID propio = 4 dígitos aleatorios
+  ME.id = String(~~(Math.random()*9000)+1000);
+  const el=document.getElementById('myid-val');
+  if(el) el.textContent=ME.id;
+  const btn=document.getElementById('myid-copy');
+  if(btn) btn.onclick=()=>{
+    navigator.clipboard.writeText(ME.id)
+      .then(()=>{ btn.textContent='✓ COPIADO'; setTimeout(()=>btn.textContent='COPIAR',1500); })
+      .catch(()=>prompt('Tu ID:',ME.id));
   };
-  ws.onmessage=e=>{ try{ netRecv(JSON.parse(e.data)); }catch{} };
-  ws.onerror=()=>setStatus('⚠ Error WS');
-  ws.onclose=()=>{ setStatus('Reconectando…'); clearInterval(wsPingInterval); setTimeout(netInit,3000); };
-  window.addEventListener('beforeunload',()=>{ ws&&ws.readyState===1&&netSend({t:'bye'}); });
+  // No hace falta WebSocket hasta entrar — se conecta en doEnter
 }
 
-function netSend(msg){
-  if(!ws||ws.readyState!==1) return;
-  msg.id=ME.id; msg.room=ME.room;
+function connectToPeer(){
+  const pid=document.getElementById('peer-id-input').value.trim();
+  if(!pid){ toast('Introduce el ID de tu amigo'); return; }
+  // Guardamos el peer a conectar para cuando entremos
+  window._pendingPeer=pid;
+  toast('ID guardado: '+pid+' · Pulsa ENTRAR');
+}
+
+function wsConnect(roomKey){
+  // Canal único por par de IDs (orden fijo para que ambos usen el mismo canal)
+  const ids=[ME.id, roomKey].sort();
+  const chan='nexus'+ids[0]+'x'+ids[1];
+  setStatus('Conectando sala '+chan+'…');
+  const url=`wss://s14470.blr1.piesocket.com/v3/${chan}?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9f&notify_self=0`;
+  ws=new WebSocket(url);
+  ws.onopen=()=>{
+    wsReady=true;
+    setStatus('✓ Conectado');
+    netSendRaw({t:'hello',nick:ME.nick,color:ME.color,x:lobbyPx,z:lobbyPz,screen:curScreen});
+  };
+  ws.onmessage=e=>{ try{ netRecv(JSON.parse(e.data)); }catch(ex){} };
+  ws.onerror=()=>setStatus('⚠ Error WS');
+  ws.onclose=()=>{ wsReady=false; setStatus('WS cerrado'); };
+  window.addEventListener('beforeunload',()=>{ if(wsReady) netSendRaw({t:'bye'}); });
+}
+
+function netSendRaw(msg){
+  if(!wsReady||!ws) return;
+  msg.id=ME.id;
   ws.send(JSON.stringify(msg));
 }
 
+function netSendAll(msg){ netSendRaw(msg); }
+
 function netRecv(msg){
-  if(!msg||msg.id===ME.id||msg.room!==ME.room) return;
-  if(msg.t==='bye'){ peerLeave(msg.id); return; }
+  if(!msg||msg.id===ME.id) return;
+  const fromId=msg.id||'?';
+  if(msg.t==='bye'){ peerLeave(fromId); return; }
   if(msg.t==='hello'||msg.t==='ping'||msg.t==='state'){
-    const isNew=!PEERS[msg.id];
-    PEERS[msg.id]={
-      nick:msg.nick||PEERS[msg.id]?.nick||msg.id,
-      color:msg.color||PEERS[msg.id]?.color||'#4a6572',
-      x:msg.x||0, z:msg.z||0,
-      screen:msg.screen||'lobby',
-      lastSeen:Date.now()
-    };
-    if(isNew){ toast((PEERS[msg.id].nick)+' se unió!'); netSend({t:'state',nick:ME.nick,color:ME.color,x:lobbyPx,z:lobbyPz,screen:curScreen}); }
+    const isNew=!PEERS[fromId];
+    if(!PEERS[fromId]) PEERS[fromId]={nick:fromId,color:'#4a6572',x:0,z:0,screen:'lobby',lastSeen:Date.now()};
+    const p=PEERS[fromId];
+    p.lastSeen=Date.now();
+    if(msg.nick) p.nick=msg.nick;
+    if(msg.color) p.color=msg.color;
+    if(msg.x!==undefined) p.x=msg.x;
+    if(msg.z!==undefined) p.z=msg.z;
+    if(msg.screen) p.screen=msg.screen;
+    if(isNew||msg.t==='hello'){
+      toast(p.nick+' se unió!');
+      netSendRaw({t:'state',nick:ME.nick,color:ME.color,x:lobbyPx,z:lobbyPz,screen:curScreen});
+    }
     updatePP();
   }
-  if(msg.t==='pvp_b') pvpRemoteBullet(msg);
+  if(msg.t==='pvp_b') pvpRemoteBullet(msg,fromId);
 }
 
 function peerLeave(id){
   if(!PEERS[id]) return;
   toast(PEERS[id].nick+' salió');
   delete PEERS[id];
-  // Remove 3D meshes
   lbRemoveRemote(id);
   pvpRemoveRemote(id);
   updatePP();
 }
 
-// Prune dead peers
-setInterval(()=>{
-  const now=Date.now();
-  for(const id in PEERS) if(now-PEERS[id].lastSeen>8000) peerLeave(id);
-},3000);
-
 // ── UI helpers ──
-function setStatus(s){ const el=document.getElementById('estat'); if(el) el.textContent=s; }
+function setStatus(s){
+  const el=document.getElementById('estat');
+  if(el) el.textContent=s;
+}
 
 let toastTm;
 function toast(m){
@@ -296,16 +331,16 @@ function toast(m){
 }
 
 function updatePP(){
-  const el=document.getElementById('ppi'); el.innerHTML='';
-  // self
+  const el=document.getElementById('ppi'); if(!el) return;
+  el.innerHTML='';
   const self=document.createElement('div');
   self.className='ppi'; self.style.color='var(--c3)';
-  self.innerHTML=`<div class="ppc" style="background:${ME.color};box-shadow:0 0 5px ${ME.color}"></div>⚡ ${ME.nick}`;
+  self.innerHTML=`<div class="ppc" style="background:${ME.color};box-shadow:0 0 5px ${ME.color}"></div>⚡ ${ME.nick||'YO'}`;
   el.appendChild(self);
   for(const id in PEERS){
     const p=PEERS[id];
     const d=document.createElement('div'); d.className='ppi';
-    d.innerHTML=`<div class="ppc" style="background:${p.color};box-shadow:0 0 5px ${p.color}"></div>${p.nick}`;
+    d.innerHTML=`<div class="ppc" style="background:${p.color};box-shadow:0 0 5px ${p.color}"></div>${p.nick} <span style="color:#333;font-size:8px;margin-left:4px">[${p.screen||'?'}]</span>`;
     el.appendChild(d);
   }
   const c=Object.keys(PEERS).length+1;
@@ -316,13 +351,14 @@ function updatePP(){
 function showScreen(s){
   document.querySelectorAll('.screen').forEach(el=>el.style.display='none');
   const sc=document.getElementById('scr-'+s);
+  if(!sc) return;
   sc.style.display='block';
   curScreen=s;
-  // Init + resize AFTER making visible so clientWidth/Height are correct
-  if(s==='lobby') { lbInit(); lbResize(); }
-  if(s==='geo')   { geoInit(); geoResize(); geoStart(); }
+  if(s==='lobby')  { lbInit(); lbResize(); }
+  if(s==='geo')    { geoInit(); geoResize(); geoStart(); }
   if(s==='shooter'){ shInit(); shResize(); shStart(); }
-  if(s==='pvp')   { pvpInit(); pvpResize(); pvpStart(); }
+  if(s==='pvp')    { pvpInit(); pvpResize(); pvpStart(); }
+  netSendAll({t:'ping',nick:ME.nick,color:ME.color,x:lobbyPx,z:lobbyPz,screen:s});
 }
 
 function goLobby(){
@@ -339,75 +375,70 @@ window.addEventListener('resize',()=>{ lbResize(); geoResize(); shResize(); pvpR
 // ════════════════════════════════════════════════════════════
 function doEnter(){
   const nick=(document.getElementById('ni').value.trim().toUpperCase()||'PLAYER_'+~~(Math.random()*99)).slice(0,16);
-  const room=(document.getElementById('ri').value.trim().toUpperCase()||'SALA_01').slice(0,20);
-  ME.nick=nick; ME.room=room;
-  ME.id=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  ME.nick=nick;
   ME.color=COLORS[~~(Math.random()*COLORS.length)];
   document.getElementById('entry').style.display='none';
   document.getElementById('hud').classList.add('on');
   document.getElementById('pp').classList.add('on');
   document.getElementById('hn').textContent=ME.nick;
   updatePP();
-  netInit();
+  // Connect WS if a peer ID was entered
+  const pid=(document.getElementById('peer-id-input').value.trim()||window._pendingPeer||'').trim();
+  if(pid) wsConnect(pid);
   showScreen('lobby');
 }
 window.doEnter=doEnter;
-document.getElementById('ni').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('ri').focus(); });
-document.getElementById('ri').addEventListener('keydown',e=>{ if(e.key==='Enter') doEnter(); });
+document.getElementById('ni').addEventListener('keydown',e=>{ if(e.key==='Enter') doEnter(); });
+document.getElementById('peer-id-input').addEventListener('keydown',e=>{ if(e.key==='Enter') doEnter(); });
 
 // ════════════════════════════════════════════════════════════
-//  LOBBY 3D
+//  LOBBY 3D — declarations first (avoid TDZ errors)
 // ════════════════════════════════════════════════════════════
 let lbR=null,lbScene=null,lbCam=null,lbAf=null;
-let lbMesh=null,lobbyPx=0,lobbyPz=0;
-let lbRemotes={}; // id→mesh
-let lbPortals=[]; // {x,z,game,inner,label,light}
+let lbMesh=null;
+let lbRemotes={};
+let lbPortals=[];
 let lbGlows=[];
 let camYaw=0,camPitch=0.3;
 let pointerLocked=false;
 const LSPD=0.1,CSENS=0.002;
 
+// Init: assign 4-digit ID and setup copy button (no external libs needed)
+netInit();
+// Ping loop
+setInterval(()=>{
+  if(curScreen!=='entry'&&wsReady) netSendAll({t:'ping',nick:ME.nick,color:ME.color,x:lobbyPx,z:lobbyPz,screen:curScreen});
+},2000);
+
 function lbInit(){
   const cv=document.getElementById('cL');
   if(lbR){ lbRun(); return; }
-
   lbR=new THREE.WebGLRenderer({canvas:cv,antialias:true});
   lbR.setPixelRatio(Math.min(devicePixelRatio,2));
   lbR.setClearColor(0x02040a);
   lbScene=new THREE.Scene();
   lbScene.fog=new THREE.Fog(0x02040a,28,72);
   lbCam=new THREE.PerspectiveCamera(65,1,0.1,150);
-
   lbScene.add(new THREE.AmbientLight(0x112233,2));
   const dl=new THREE.DirectionalLight(0x00f5ff,0.6); dl.position.set(5,10,5); lbScene.add(dl);
-
-  // Floor
   const fg=new THREE.Mesh(new THREE.PlaneGeometry(80,80,40,40),
     new THREE.MeshBasicMaterial({color:0x00f5ff,wireframe:true,transparent:true,opacity:0.05}));
   fg.rotation.x=-Math.PI/2; lbScene.add(fg);
   const sf=new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.MeshStandardMaterial({color:0x020507}));
   sf.rotation.x=-Math.PI/2; sf.position.y=-0.02; lbScene.add(sf);
-
-  // Stars
   const sg=new THREE.BufferGeometry(),sp=[];
   for(let i=0;i<500;i++) sp.push((Math.random()-.5)*120,Math.random()*30+4,(Math.random()-.5)*120);
   sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
   lbScene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x4a6572,size:0.15})));
-
-  // Player cube
-  const col=new THREE.Color(ME.color);
+  const col=new THREE.Color(ME.color||'#00f5ff');
   lbMesh=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.9,0.9),
     new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:0.5}));
   lbMesh.position.set(0,0.45,0);
   lbMesh.add(new THREE.PointLight(col,2,5));
   lbScene.add(lbMesh);
-
-  // Portals
   lbMakePortal( 0,  0,-24, 0xadff2f,'GEOMETRY DASH','geo','z');
   lbMakePortal(-20, 0,  0, 0x00f5ff,'MATAMARCIANOS','shooter','x');
   lbMakePortal( 20, 0,  0, 0xff006e,'PVP ARENA',    'pvp','x');
-
-  // Pillars
   [[-10,0,-10],[10,0,-10],[-10,0,10],[10,0,10]].forEach(([x,,z])=>{
     const p=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.35,7,8),
       new THREE.MeshStandardMaterial({color:0x0d1a2e}));
@@ -416,8 +447,6 @@ function lbInit(){
       new THREE.MeshBasicMaterial({color:0x00f5ff,transparent:true,opacity:0.35}));
     r.position.set(x,6.5,z); r.rotation.x=Math.PI/2; lbScene.add(r);
   });
-
-  // Pointer lock
   cv.addEventListener('click',()=>{ if(curScreen==='lobby') cv.requestPointerLock(); });
   document.addEventListener('pointerlockchange',()=>{ pointerLocked=document.pointerLockElement===cv; });
   document.addEventListener('mousemove',e=>{
@@ -425,7 +454,6 @@ function lbInit(){
     camYaw  -=e.movementX*CSENS;
     camPitch =Math.max(-0.5,Math.min(0.5,camPitch-e.movementY*CSENS));
   });
-
   lbRun();
 }
 
@@ -436,78 +464,62 @@ function lbMakePortal(x,y,z,hex,label,game,axis){
   ring.position.set(x,3.2,z);
   if(axis==='x') ring.rotation.y=Math.PI/2;
   lbScene.add(ring);
-
   const inner=new THREE.Mesh(new THREE.CircleGeometry(2.6,48),
     new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.12,side:THREE.DoubleSide}));
   inner.position.set(x,3.2,z);
   if(axis==='x') inner.rotation.y=Math.PI/2;
   lbScene.add(inner);
-
   const light=new THREE.PointLight(col,2.5,10);
   light.position.set(x,3.2,z); lbScene.add(light);
   lbGlows.push({light,base:2.5,t:Math.random()*10});
-
-  // DOM label
+  const r=(hex>>16)&255,g=(hex>>8)&255,b=hex&255;
   const div=document.createElement('div');
   div.style.cssText=`position:fixed;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;
-    letter-spacing:3px;color:#${hex.toString(16).padStart(6,'0')};background:rgba(2,4,10,0.75);
-    border:1px solid rgba(${(hex>>16)&255},${(hex>>8)&255},${hex&255},0.4);
+    letter-spacing:3px;color:rgb(${r},${g},${b});background:rgba(2,4,10,0.75);
+    border:1px solid rgba(${r},${g},${b},0.4);
     padding:5px 14px;pointer-events:none;z-index:120;text-shadow:0 0 8px currentColor;
     transform:translate(-50%,-50%);display:none;`;
   div.textContent=label;
   document.body.appendChild(div);
-
   lbPortals.push({x,z,game,inner,light,div});
 }
 
 function lbResize(){
   if(!lbR) return;
-  const W=window.innerWidth, H=window.innerHeight;
+  const W=window.innerWidth,H=window.innerHeight;
   lbR.setSize(W,H,false);
   lbCam.aspect=W/H; lbCam.updateProjectionMatrix();
 }
 
 let lbLastProx=null;
-function lbRun(){
-  if(lbAf) cancelAnimationFrame(lbAf);
-  lbLoop();
-}
+function lbRun(){ if(lbAf) cancelAnimationFrame(lbAf); lbLoop(); }
 function lbLoop(){
   lbAf=requestAnimationFrame(lbLoop);
   if(curScreen!=='lobby') return;
   const t=performance.now()*0.001;
-
-  // Movement
   let mx=0,mz=0;
   if(K['KeyW']||K['w']||K['arrowup'])    mz=-1;
   if(K['KeyS']||K['s']||K['arrowdown'])  mz= 1;
   if(K['KeyA']||K['a']||K['arrowleft'])  mx=-1;
   if(K['KeyD']||K['d']||K['arrowright']) mx= 1;
   if(mx&&mz){mx*=0.707;mz*=0.707;}
-  const fX=Math.sin(camYaw), fZ=-Math.cos(camYaw);
-  const sX=Math.cos(camYaw), sZ=Math.sin(camYaw);
+  const fX=Math.sin(camYaw),fZ=-Math.cos(camYaw);
+  const sX=Math.cos(camYaw),sZ=Math.sin(camYaw);
   lobbyPx=Math.max(-28,Math.min(28,lobbyPx+(fX*(-mz)+sX*mx)*LSPD));
   lobbyPz=Math.max(-28,Math.min(28,lobbyPz+(fZ*(-mz)+sZ*mx)*LSPD));
   lbMesh.position.set(lobbyPx,0.45,lobbyPz);
   if(mx||mz) lbMesh.rotation.y=Math.atan2(fX*(-mz)+sX*mx,fZ*(-mz)+sZ*mx);
-
-  // Camera
   const cd=8,ch=3.5;
   lbCam.position.set(
     lobbyPx-Math.sin(camYaw)*cd*Math.cos(camPitch),
     0.45+ch+Math.sin(camPitch)*cd,
     lobbyPz+Math.cos(camYaw)*cd*Math.cos(camPitch));
   lbCam.lookAt(lobbyPx,1.2,lobbyPz);
-
-  // Portal glows + shimmer
   lbGlows.forEach(p=>{ p.t+=0.025; p.light.intensity=p.base+Math.sin(p.t)*1.1; });
   lbPortals.forEach((p,i)=>{ p.inner.material.opacity=0.1+Math.sin(t*1.5+i)*0.07; });
-
-  // Portal labels + proximity
   let nearPortal=null;
   lbPortals.forEach(p=>{
     const d=Math.sqrt((lobbyPx-p.x)**2+(lobbyPz-p.z)**2);
-    // Project to screen
     const v=new THREE.Vector3(p.x,3.2,p.z).project(lbCam);
     const sx=(v.x*.5+.5)*window.innerWidth;
     const sy=(-v.y*.5+.5)*window.innerHeight;
@@ -521,8 +533,6 @@ function lbLoop(){
     if(lbLastProx!==nearPortal.game){ lbLastProx=nearPortal.game; toast('Presiona E para entrar'); }
     if(K['KeyE']||K['e']){ K['KeyE']=K['e']=false; showScreen(nearPortal.game); }
   } else lbLastProx=null;
-
-  // Remote player meshes
   for(const id in PEERS){
     const p=PEERS[id];
     if(!lbRemotes[id]){
@@ -532,17 +542,16 @@ function lbLoop(){
       m.add(new THREE.PointLight(col,1.5,4)); lbScene.add(m);
       lbRemotes[id]=m;
     }
-    const bob=Math.sin(t+id.charCodeAt(0)*.3)*.08;
+    const bob=Math.sin(t+(id.charCodeAt(0)||0)*.3)*.08;
     lbRemotes[id].position.set(p.x||0,0.45+bob,p.z||0);
     lbRemotes[id].rotation.y=t*.4;
   }
   for(const id in lbRemotes) if(!PEERS[id]){ lbScene.remove(lbRemotes[id]); delete lbRemotes[id]; }
-
-  if((mx||mz)&&Math.random()<.4) netSend({t:'ping',nick:ME.nick,color:ME.color,x:lobbyPx,z:lobbyPz,screen:'lobby'});
+  if((mx||mz)&&Math.random()<.4) netSendAll({t:'ping',nick:ME.nick,color:ME.color,x:lobbyPx,z:lobbyPz,screen:'lobby'});
   lbR.render(lbScene,lbCam);
 }
 
-function lbRemoveRemote(id){ if(lbRemotes[id]){ lbScene&&lbScene.remove(lbRemotes[id]); delete lbRemotes[id]; } }
+function lbRemoveRemote(id){ if(lbRemotes[id]&&lbScene){ lbScene.remove(lbRemotes[id]); delete lbRemotes[id]; } }
 
 // ════════════════════════════════════════════════════════════
 //  GEO DASH 3D
@@ -551,7 +560,8 @@ let gR=null,gScene=null,gCam=null,gAf=null;
 let gCube=null,gY=0,gVY=0,gRun=false,gDist=0,gSpd=0,gScV=0;
 let gObs=[];
 const GGRAV=0.018,GJUMP=-0.28;
-let gJumpKey=null;
+let gJumpHandler=null;
+let gOnGround=true;
 
 function geoInit(){
   const cv=document.getElementById('cG');
@@ -564,49 +574,51 @@ function geoInit(){
   gCam=new THREE.PerspectiveCamera(60,1,0.1,80);
   gCam.position.set(-3,3.5,7); gCam.lookAt(4,1.5,0);
 }
+
 function geoResize(){
   if(!gR) return;
   const W=window.innerWidth,H=window.innerHeight-50;
   gR.setSize(W,H,false);
   gCam.aspect=W/H; gCam.updateProjectionMatrix();
 }
+
 function geoStart(){
   document.getElementById('goGeo').classList.remove('on');
-  if(!gScene){ geoInit(); geoResize(); }
-  // Clear scene
-  while(gScene.children.length) gScene.remove(gScene.children[0]);
-  gObs=[]; gY=0; gVY=0; gSpd=0.12; gDist=0; gScV=0; gRun=true;
+  if(!gR){ geoInit(); geoResize(); }
+  // Clear scene fully
+  while(gScene.children.length>0) gScene.remove(gScene.children[0]);
+  gObs=[]; gY=0; gVY=0; gSpd=0.12; gDist=0; gScV=0; gRun=true; gOnGround=true;
   document.getElementById('gsc').textContent='0';
   document.getElementById('gpc').textContent='0%';
 
   gScene.add(new THREE.AmbientLight(0x112211,2.5));
   const dl=new THREE.DirectionalLight(0xadff2f,1.2); dl.position.set(5,10,5); gScene.add(dl);
 
-  // Floor
-  const flr=new THREE.Mesh(new THREE.PlaneGeometry(300,8,150,1),
+  // Floor (long)
+  const flr=new THREE.Mesh(new THREE.PlaneGeometry(400,8,200,1),
     new THREE.MeshBasicMaterial({color:0xadff2f,wireframe:true,transparent:true,opacity:0.08}));
   flr.rotation.x=-Math.PI/2; flr.position.set(150,0,0); gScene.add(flr);
-  const sf=new THREE.Mesh(new THREE.PlaneGeometry(300,8),new THREE.MeshStandardMaterial({color:0x030a04}));
+  const sf=new THREE.Mesh(new THREE.PlaneGeometry(400,8),new THREE.MeshStandardMaterial({color:0x030a04}));
   sf.rotation.x=-Math.PI/2; sf.position.set(150,-0.01,0); gScene.add(sf);
 
   // Stars
   const sg=new THREE.BufferGeometry(),sp=[];
-  for(let i=0;i<300;i++) sp.push(Math.random()*300,Math.random()*18+2,(Math.random()-.5)*8);
+  for(let i=0;i<300;i++) sp.push(Math.random()*400,Math.random()*18+2,(Math.random()-.5)*8);
   sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
   gScene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x4a6572,size:0.12})));
 
   // Player cube
-  const col=new THREE.Color(ME.color);
+  const col=new THREE.Color(ME.color||'#adff2f');
   gCube=new THREE.Mesh(new THREE.BoxGeometry(0.82,0.82,0.82),
     new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:0.6}));
   gCube.position.set(0,0.41,0);
   gCube.add(new THREE.PointLight(col,2.5,5));
   gScene.add(gCube);
 
-  // Generate obstacles
+  // Obstacles
   const pal=[0x00f5ff,0xadff2f,0xff006e,0xff9500,0xbf5fff];
   let cx=14;
-  for(let i=0;i<70;i++){
+  for(let i=0;i<80;i++){
     const h=0.8+Math.random()*1.9, w=0.82;
     const c=new THREE.Color(pal[~~(Math.random()*pal.length)]);
     const ob=new THREE.Mesh(new THREE.BoxGeometry(w,h,0.9),
@@ -616,7 +628,7 @@ function geoStart(){
     ob.add(wf); ob.position.set(cx,h/2,0); gScene.add(ob);
     gObs.push({mesh:ob,ox:cx,h,w});
     cx+=3.5+Math.random()*4;
-    if(Math.random()<.4){
+    if(Math.random()<.35){
       const h2=.7+Math.random()*1.2;
       const ob2=new THREE.Mesh(new THREE.BoxGeometry(w,h2,.9),
         new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:0.25}));
@@ -628,42 +640,77 @@ function geoStart(){
     }
   }
 
-  // Jump
-  const jump=()=>{ if(gY<=0.02) gVY=GJUMP; };
-  if(gJumpKey) window.removeEventListener('keydown',gJumpKey);
-  gJumpKey=e=>{ if(e.code==='Space') jump(); };
-  window.addEventListener('keydown',gJumpKey);
-  document.getElementById('cG').onclick=jump;
+  // Jump handler — remove old first
+  if(gJumpHandler){
+    window.removeEventListener('keydown',gJumpHandler);
+    document.getElementById('cG').removeEventListener('click',gJumpHandler);
+  }
+  const jump=e=>{
+    if(e&&e.type==='keydown'&&e.code!=='Space') return;
+    if(gOnGround){ gVY=GJUMP; gOnGround=false; }
+  };
+  gJumpHandler=jump;
+  window.addEventListener('keydown',gJumpHandler);
+  document.getElementById('cG').addEventListener('click',gJumpHandler);
 
   if(gAf) cancelAnimationFrame(gAf);
   gLoop();
 }
-function geoStop(){ gRun=false; if(gAf){cancelAnimationFrame(gAf);gAf=null;} if(gJumpKey){window.removeEventListener('keydown',gJumpKey);gJumpKey=null;} }
+
+function geoStop(){
+  gRun=false;
+  if(gAf){cancelAnimationFrame(gAf);gAf=null;}
+  if(gJumpHandler){
+    window.removeEventListener('keydown',gJumpHandler);
+    const cv=document.getElementById('cG');
+    if(cv) cv.removeEventListener('click',gJumpHandler);
+    gJumpHandler=null;
+  }
+}
 window.geoStart=geoStart;
 
 function gLoop(){
   gAf=requestAnimationFrame(gLoop);
   if(curScreen!=='geo'||!gRun) return;
-  gDist+=gSpd; gSpd=Math.min(0.23,0.12+gDist*.00012);
+
+  gDist+=gSpd;
+  gSpd=Math.min(0.23,0.12+gDist*.00012);
   gScV=~~(gDist*10);
-  const pct=Math.min(100,~~(gDist/650*100));
+  const pct=Math.min(100,~~(gDist/800*100));
   document.getElementById('gsc').textContent=gScV;
   document.getElementById('gpc').textContent=pct+'%';
-  gVY+=GGRAV; gY-=gVY;
-  if(gY<=0){gY=0;gVY=0;}
+
+  // Physics
+  gVY+=GGRAV;
+  gY-=gVY;
+  if(gY<=0){ gY=0; gVY=0; gOnGround=true; }
+  else gOnGround=false;
+
   gCube.position.set(0,gY+0.41,0);
   gCube.rotation.z-=gSpd*1.5;
+
+  // Move obstacles
   gObs.forEach(o=>{ o.ox-=gSpd; o.mesh.position.x=o.ox; });
-  // Collision
+
+  // Collision — player box: x∈[-0.41,0.41], y∈[gY, gY+0.82]
   for(const o of gObs){
-    if(o.ox+o.w/2>-.41&&o.ox-o.w/2<.41&&gY+.82>0&&gY<o.h){
-      gRun=false;
-      document.getElementById('goGeo').classList.add('on');
-      document.getElementById('goGeoT').textContent='Puntuación: '+gScV+' ('+pct+'%)';
-      return;
+    if(o.ox-o.w/2 < 0.41 && o.ox+o.w/2 > -0.41){
+      if(gY+0.82 > 0.04 && gY < o.h-0.04){
+        gRun=false;
+        document.getElementById('goGeo').classList.add('on');
+        document.getElementById('goGeoT').textContent='Puntuación: '+gScV+' ('+pct+'%)';
+        return;
+      }
     }
   }
-  if(pct>=100){ toast('¡NIVEL COMPLETADO!'); setTimeout(goLobby,2000); return; }
+
+  if(pct>=100){ toast('¡NIVEL COMPLETADO! 🎉'); gRun=false; setTimeout(goLobby,2500); return; }
+
+  // Camera follows cube
+  gCam.position.x=gCube.position.x-3;
+  gCam.position.y=Math.max(3.5,gCube.position.y+3);
+  gCam.lookAt(gCube.position.x+4,gCube.position.y+1,0);
+
   gR.render(gScene,gCam);
 }
 
@@ -673,7 +720,8 @@ function gLoop(){
 let sR=null,sScene=null,sCam=null,sAf=null;
 let sShip=null,sBullets=[],sEnemies=[],sEBullets=[];
 let sSc=0,sWv=1,sLv=3,sRun=false,sPX=0;
-let sFireKey=null;
+let sFireHandler=null;
+let sLastFire=0;
 
 function shInit(){
   const cv=document.getElementById('cS');
@@ -686,17 +734,19 @@ function shInit(){
   sCam=new THREE.PerspectiveCamera(55,1,0.1,80);
   sCam.position.set(0,14,18); sCam.lookAt(0,0,0);
 }
+
 function shResize(){
   if(!sR) return;
   const W=window.innerWidth,H=window.innerHeight-50;
   sR.setSize(W,H,false);
   sCam.aspect=W/H; sCam.updateProjectionMatrix();
 }
+
 function shStart(){
   document.getElementById('goSh').classList.remove('on');
-  if(!sScene){ shInit(); shResize(); }
-  while(sScene.children.length) sScene.remove(sScene.children[0]);
-  sBullets=[]; sEnemies=[]; sEBullets=[]; sSc=0; sWv=1; sLv=3; sPX=0; sRun=true;
+  if(!sR){ shInit(); shResize(); }
+  while(sScene.children.length>0) sScene.remove(sScene.children[0]);
+  sBullets=[]; sEnemies=[]; sEBullets=[]; sSc=0; sWv=1; sLv=3; sPX=0; sRun=true; sLastFire=0;
   document.getElementById('ssc').textContent='0';
   document.getElementById('swv').textContent='OLA 1';
   document.getElementById('slv').textContent='❤ ❤ ❤';
@@ -704,25 +754,20 @@ function shStart(){
   sScene.add(new THREE.AmbientLight(0x110022,2.5));
   const dl=new THREE.DirectionalLight(0xff006e,1); dl.position.set(0,10,5); sScene.add(dl);
 
-  // Stars
   const sg=new THREE.BufferGeometry(),sp=[];
   for(let i=0;i<600;i++) sp.push((Math.random()-.5)*80,Math.random()*30-5,(Math.random()-.5)*15-5);
   sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
   sScene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x4a6572,size:0.1})));
 
-  // Floor grid
-  sScene.add(Object.assign(
-    new THREE.Mesh(new THREE.PlaneGeometry(26,26,13,13),
-      new THREE.MeshBasicMaterial({color:0xff006e,wireframe:true,transparent:true,opacity:0.06})),
-    {rotation:{x:-Math.PI/2,y:0,z:0}}));
+  const fg=new THREE.Mesh(new THREE.PlaneGeometry(26,26,13,13),
+    new THREE.MeshBasicMaterial({color:0xff006e,wireframe:true,transparent:true,opacity:0.06}));
+  fg.rotation.x=-Math.PI/2; sScene.add(fg);
 
-  // Player ship
-  const col=new THREE.Color(ME.color);
+  const col=new THREE.Color(ME.color||'#00f5ff');
   sShip=new THREE.Group();
   const body=new THREE.Mesh(new THREE.ConeGeometry(.5,1.4,6),
     new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:0.7}));
-  body.rotation.x=-Math.PI/2;
-  sShip.add(body);
+  body.rotation.x=-Math.PI/2; sShip.add(body);
   sShip.add(new THREE.Mesh(new THREE.BoxGeometry(2.8,.1,.7),
     new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:0.3})));
   sShip.add(new THREE.PointLight(col,2.5,5));
@@ -730,20 +775,32 @@ function shStart(){
 
   shSpawnWave();
 
+  if(sFireHandler){
+    window.removeEventListener('keydown',sFireHandler);
+    document.getElementById('cS').removeEventListener('click',sFireHandler);
+  }
   const fire=()=>shFire();
-  if(sFireKey) window.removeEventListener('keydown',sFireKey);
-  sFireKey=e=>{ if(e.code==='Space') fire(); };
-  window.addEventListener('keydown',sFireKey);
-  document.getElementById('cS').onclick=fire;
+  sFireHandler=e=>{if(e&&e.code==='Space') fire();};
+  window.addEventListener('keydown',sFireHandler);
+  document.getElementById('cS').addEventListener('click',fire);
 
   if(sAf) cancelAnimationFrame(sAf);
   sLoop();
 }
-function shStop(){ sRun=false; if(sAf){cancelAnimationFrame(sAf);sAf=null;} if(sFireKey){window.removeEventListener('keydown',sFireKey);sFireKey=null;} }
+
+function shStop(){
+  sRun=false;
+  if(sAf){cancelAnimationFrame(sAf);sAf=null;}
+  if(sFireHandler){
+    window.removeEventListener('keydown',sFireHandler);
+    sFireHandler=null;
+  }
+}
 window.shStart=shStart;
 
 function shSpawnWave(){
-  const rows=Math.min(3,1+~~(sWv/2)), cols=Math.min(9,4+sWv);
+  const rows=Math.min(3,1+~~(sWv/2));
+  const cols=Math.min(9,4+sWv);
   for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
     const col=new THREE.Color().setHSL(Math.random(),1,.55);
     const em=new THREE.Mesh(new THREE.OctahedronGeometry(.5,0),
@@ -757,25 +814,33 @@ function shSpawnWave(){
       dir:1,spd:.012+sWv*.003,st:~~(80+Math.random()*160)});
   }
 }
+
 function shFire(){
   if(!sRun||!sShip) return;
-  const col=new THREE.Color(ME.color);
+  const now=performance.now();
+  if(now-sLastFire<180) return; // rate limit
+  sLastFire=now;
+  const col=new THREE.Color(ME.color||'#00f5ff');
   const b=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,.7,6),new THREE.MeshBasicMaterial({color:col}));
   b.position.copy(sShip.position); b.position.z-=1;
   b.add(new THREE.PointLight(col,2,3)); sScene.add(b);
-  sBullets.push({mesh:b,spd:.28});
+  sBullets.push({mesh:b,spd:.3});
 }
+
 function shUpdateHud(){
   document.getElementById('ssc').textContent=sSc;
   document.getElementById('swv').textContent='OLA '+sWv;
   document.getElementById('slv').textContent='❤ '.repeat(Math.max(0,sLv)).trim()||'💀';
 }
+
 function sLoop(){
   sAf=requestAnimationFrame(sLoop);
   if(curScreen!=='shooter'||!sRun) return;
   const t=performance.now()*.001;
-  if(K['KeyA']||K['a']||K['arrowleft'])  sPX=Math.max(-11,sPX-.13);
-  if(K['KeyD']||K['d']||K['arrowright']) sPX=Math.min(11,sPX+.13);
+
+  if(K['KeyA']||K['a']||K['ArrowLeft'])  sPX=Math.max(-11,sPX-.13);
+  if(K['KeyD']||K['d']||K['ArrowRight']) sPX=Math.min(11,sPX+.13);
+  if(K['Space']&&t-sLastFire>.18){ sLastFire=t; shFire(); }
   sShip.position.x+=(sPX-sShip.position.x)*.25;
 
   let edge=false;
@@ -790,6 +855,8 @@ function sLoop(){
       b.position.copy(e.mesh.position); b.add(new THREE.PointLight(0xff006e,1.5,3)); sScene.add(b);
       sEBullets.push({mesh:b,spd:.1+sWv*.008});
     }
+    // Game over if enemy reaches player
+    if(e.ez>6){ sLv=0; shUpdateHud(); sRun=false; document.getElementById('goSh').classList.add('on'); document.getElementById('goShT').textContent='¡Invasión! Puntuación: '+sSc; }
   });
   if(edge) sEnemies.forEach(e=>{ if(e.alive){e.dir*=-1; e.ez+=.6; e.mesh.position.z=e.ez;} });
 
@@ -808,6 +875,7 @@ function sLoop(){
     }
     return true;
   });
+
   sEBullets=sEBullets.filter(b=>{
     b.mesh.position.z+=b.spd;
     if(b.mesh.position.z>10){ sScene.remove(b.mesh); return false; }
@@ -818,8 +886,9 @@ function sLoop(){
     }
     return true;
   });
+
   if(sEnemies.length&&sEnemies.every(e=>!e.alive)){
-    sWv++; sEnemies=[]; shUpdateHud(); shSpawnWave(); toast('¡OLA '+sWv+'!');
+    sWv++; sEnemies=[]; shUpdateHud(); shSpawnWave(); toast('¡OLA '+sWv+'! 🚀');
   }
   sR.render(sScene,sCam);
 }
@@ -830,7 +899,8 @@ function sLoop(){
 let pR=null,pScene=null,pCam=null,pAf=null;
 let pMe=null,pRemotes={},pBullets=[],pRBullets=[];
 let pKills=0,pRun=false,pFacing=0;
-let pFireKey=null;
+let pFireHandler=null;
+let pLastFire=0;
 const ARENA=22;
 
 function pvpInit(){
@@ -843,31 +913,30 @@ function pvpInit(){
   pScene.fog=new THREE.Fog(0x020508,30,76);
   pCam=new THREE.PerspectiveCamera(60,1,0.1,100);
 }
+
 function pvpResize(){
   if(!pR) return;
   const W=window.innerWidth,H=window.innerHeight-50;
   pR.setSize(W,H,false);
   pCam.aspect=W/H; pCam.updateProjectionMatrix();
 }
+
 function pvpStart(){
-  if(!pScene){ pvpInit(); pvpResize(); }
-  while(pScene.children.length) pScene.remove(pScene.children[0]);
-  pBullets=[]; pRBullets=[]; pKills=0; pRun=true; pFacing=0; pRemotes={};
+  if(!pR){ pvpInit(); pvpResize(); }
+  while(pScene.children.length>0) pScene.remove(pScene.children[0]);
+  pBullets=[]; pRBullets=[]; pKills=0; pRun=true; pFacing=0; pRemotes={}; pLastFire=0;
   document.getElementById('pkv').textContent='Kills: 0';
+  document.getElementById('ppc2').textContent='Solo';
 
   pScene.add(new THREE.AmbientLight(0x112233,1.8));
   const dl=new THREE.DirectionalLight(0xffd700,.7); dl.position.set(5,10,5); pScene.add(dl);
 
-  // Floor
-  pScene.add(Object.assign(
-    new THREE.Mesh(new THREE.PlaneGeometry(ARENA*2,ARENA*2,22,22),
-      new THREE.MeshBasicMaterial({color:0xffd700,wireframe:true,transparent:true,opacity:0.07})),
-    {rotation:{x:-Math.PI/2,y:0,z:0}}));
-  pScene.add(Object.assign(
-    new THREE.Mesh(new THREE.PlaneGeometry(ARENA*2,ARENA*2),new THREE.MeshStandardMaterial({color:0x030508})),
-    {rotation:{x:-Math.PI/2,y:0,z:0},position:{x:0,y:-.01,z:0}}));
+  const fg=new THREE.Mesh(new THREE.PlaneGeometry(ARENA*2,ARENA*2,22,22),
+    new THREE.MeshBasicMaterial({color:0xffd700,wireframe:true,transparent:true,opacity:0.07}));
+  fg.rotation.x=-Math.PI/2; pScene.add(fg);
+  const sf=new THREE.Mesh(new THREE.PlaneGeometry(ARENA*2,ARENA*2),new THREE.MeshStandardMaterial({color:0x030508}));
+  sf.rotation.x=-Math.PI/2; sf.position.y=-.01; pScene.add(sf);
 
-  // Walls
   [[0,ARENA,'z'],[0,-ARENA,'z'],[ARENA,0,'x'],[-ARENA,0,'x']].forEach(([x,z,ax])=>{
     const m=new THREE.Mesh(
       ax==='z'?new THREE.BoxGeometry(ARENA*2,2.5,.5):new THREE.BoxGeometry(.5,2.5,ARENA*2),
@@ -875,58 +944,66 @@ function pvpStart(){
     m.position.set(x,1.25,z); pScene.add(m);
   });
 
-  // Cover boxes
-  [[6,0,6],[-6,0,6],[6,0,-6],[-6,0,-6],[0,0,10],[0,0,-10],[10,0,0],[-10,0,0]].forEach(([x,y,z])=>{
+  [[6,6],[-6,6],[6,-6],[-6,-6],[0,10],[0,-10],[10,0],[-10,0]].forEach(([x,z])=>{
     const s=1.6+Math.random()*1.2;
     const m=new THREE.Mesh(new THREE.BoxGeometry(s,2.2,s),
       new THREE.MeshStandardMaterial({color:0x1a2a3a,emissive:0x0a1a2a,emissiveIntensity:.25}));
     m.position.set(x,1.1,z); pScene.add(m);
   });
 
-  // Stars
   const sg=new THREE.BufferGeometry(),sp=[];
   for(let i=0;i<400;i++) sp.push((Math.random()-.5)*120,Math.random()*40+5,(Math.random()-.5)*120);
   sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
   pScene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x4a6572,size:0.12})));
 
-  // My cube
-  const col=new THREE.Color(ME.color);
+  const col=new THREE.Color(ME.color||'#ffd700');
   pMe=new THREE.Mesh(new THREE.BoxGeometry(.9,.9,.9),
     new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.6}));
   pMe.position.set(0,.45,0); pMe.add(new THREE.PointLight(col,2,5)); pScene.add(pMe);
   pMe._x=0; pMe._z=0;
 
-  const fire=()=>pvpFire();
-  if(pFireKey) window.removeEventListener('keydown',pFireKey);
-  pFireKey=e=>{ if(e.code==='Space') fire(); };
-  window.addEventListener('keydown',pFireKey);
-  document.getElementById('cP').onclick=fire;
+  if(pFireHandler){
+    window.removeEventListener('keydown',pFireHandler);
+    document.getElementById('cP').removeEventListener('click',pFireHandler);
+  }
+  pFireHandler=e=>{ if(e&&e.code==='Space') pvpFire(); };
+  window.addEventListener('keydown',pFireHandler);
+  document.getElementById('cP').addEventListener('click',()=>pvpFire());
 
   if(pAf) cancelAnimationFrame(pAf);
   pLoop();
 }
-function pvpStop(){ pRun=false; if(pAf){cancelAnimationFrame(pAf);pAf=null;} if(pFireKey){window.removeEventListener('keydown',pFireKey);pFireKey=null;} }
+
+function pvpStop(){
+  pRun=false;
+  if(pAf){cancelAnimationFrame(pAf);pAf=null;}
+  if(pFireHandler){ window.removeEventListener('keydown',pFireHandler); pFireHandler=null; }
+}
 
 function pvpFire(){
   if(!pRun||!pMe) return;
-  const col=new THREE.Color(ME.color);
+  const now=performance.now();
+  if(now-pLastFire<200) return;
+  pLastFire=now;
+  const col=new THREE.Color(ME.color||'#ffd700');
   const b=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.6,6),new THREE.MeshBasicMaterial({color:col}));
-  b.position.copy(pMe.position); b.rotation.x=Math.PI/2;
+  b.position.set(pMe._x,.45,pMe._z); b.rotation.x=Math.PI/2;
   b.add(new THREE.PointLight(col,2.5,4)); pScene.add(b);
   const dx=Math.sin(pFacing),dz=-Math.cos(pFacing);
   pBullets.push({mesh:b,dx,dz,spd:.28});
-  netSend({t:'pvp_b',bx:pMe._x,bz:pMe._z,dx,dz,color:ME.color});
+  netSendAll({t:'pvp_b',bx:pMe._x,bz:pMe._z,dx,dz,color:ME.color});
 }
 
-function pvpRemoteBullet(msg){
+function pvpRemoteBullet(msg,fromId){
   if(!pRun||!pScene) return;
   const col=new THREE.Color(msg.color||'#ff006e');
   const b=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.6,6),new THREE.MeshBasicMaterial({color:col}));
   b.position.set(msg.bx||0,.45,msg.bz||0); b.rotation.x=Math.PI/2;
   b.add(new THREE.PointLight(col,2,4)); pScene.add(b);
-  pRBullets.push({mesh:b,dx:msg.dx||0,dz:msg.dz||0,spd:.28,owner:msg.id});
+  pRBullets.push({mesh:b,dx:msg.dx||0,dz:msg.dz||0,spd:.28,owner:fromId});
 }
-function pvpRemoveRemote(id){ if(pRemotes[id]){ pScene&&pScene.remove(pRemotes[id].mesh); delete pRemotes[id]; } }
+
+function pvpRemoveRemote(id){ if(pRemotes[id]&&pScene){ pScene.remove(pRemotes[id].mesh); delete pRemotes[id]; } }
 
 function pLoop(){
   pAf=requestAnimationFrame(pLoop);
@@ -940,14 +1017,15 @@ function pLoop(){
   pMe._x=Math.max(-ARENA+.5,Math.min(ARENA-.5,pMe._x+mx*.1));
   pMe._z=Math.max(-ARENA+.5,Math.min(ARENA-.5,pMe._z+mz*.1));
   pMe.position.set(pMe._x,.45,pMe._z);
-  if(mx||mz){ pFacing=Math.atan2(mx,mz)+Math.PI; pMe.rotation.y=pFacing; }
+  if(mx||mz){ pFacing=Math.atan2(mx,-mz); pMe.rotation.y=pFacing; }
 
-  // Camera follow
+  // Auto fire when holding space
+  if(K['Space']){ pvpFire(); }
+
   pCam.position.x+=(pMe._x-pCam.position.x)*.07;
   pCam.position.z+=(pMe._z+12-pCam.position.z)*.07;
   pCam.position.y=8; pCam.lookAt(pMe._x,0,pMe._z);
 
-  // Remote players
   for(const id in PEERS){
     const rp=PEERS[id];
     if(!pRemotes[id]){
@@ -958,11 +1036,9 @@ function pLoop(){
       pRemotes[id]={mesh:m};
     }
     pRemotes[id].mesh.position.set(rp.x||0,.45,rp.z||0);
-    pRemotes[id].mesh.rotation.y=t;
   }
   for(const id in pRemotes) if(!PEERS[id]){ pScene.remove(pRemotes[id].mesh); delete pRemotes[id]; }
 
-  // My bullets
   pBullets=pBullets.filter(b=>{
     b.mesh.position.x+=b.dx*b.spd; b.mesh.position.z+=b.dz*b.spd;
     if(Math.abs(b.mesh.position.x)>ARENA||Math.abs(b.mesh.position.z)>ARENA){ pScene.remove(b.mesh); return false; }
@@ -978,19 +1054,19 @@ function pLoop(){
     return true;
   });
 
-  // Remote bullets
   pRBullets=pRBullets.filter(b=>{
     b.mesh.position.x+=b.dx*b.spd; b.mesh.position.z+=b.dz*b.spd;
     if(Math.abs(b.mesh.position.x)>ARENA||Math.abs(b.mesh.position.z)>ARENA){ pScene.remove(b.mesh); return false; }
-    if(b.mesh.position.distanceTo(pMe.position)<.9){ pScene.remove(b.mesh); toast('¡TE HAN GOLPEADO!'); return false; }
+    if(b.mesh.position.distanceTo(pMe.position)<.9){ pScene.remove(b.mesh); toast('¡TE HAN GOLPEADO! 💥'); return false; }
     return true;
   });
 
   const pp=Object.keys(pRemotes).length+1;
   document.getElementById('ppc2').textContent=pp+(pp===1?' jugador':' jugadores');
-  if((mx||mz)&&Math.random()<.4) netSend({t:'ping',nick:ME.nick,color:ME.color,x:pMe._x,z:pMe._z,screen:'pvp'});
+  if((mx||mz)&&Math.random()<.4) netSendAll({t:'ping',nick:ME.nick,color:ME.color,x:pMe._x,z:pMe._z,screen:'pvp'});
   pR.render(pScene,pCam);
 }
+
 </script>
 </body>
 </html>
